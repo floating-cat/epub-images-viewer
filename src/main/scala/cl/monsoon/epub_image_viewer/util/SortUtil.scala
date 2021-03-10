@@ -13,7 +13,7 @@ object SortUtil {
       .map(aThing => (aThing, regex.findPrefixMatchOf(aThing.show)))
       .partition(_._2.nonEmpty)
 
-    val matchedAndSortedThngs = regexResultsPair._1.sortBy { p =>
+    val matchedAndSortedThings = regexResultsPair._1.sortBy { p =>
       val regexResult = p._2.get
       (regexResult.group(1), regexResult.group(2).toInt)
     }
@@ -22,6 +22,6 @@ object SortUtil {
     // sort them in this algorithm, So just sort them in lexicographic order.
     val unmatchedThings = regexResultsPair._2.map(_._1).sortBy(_.show)
 
-    matchedAndSortedThngs ++ unmatchedThings
+    matchedAndSortedThings ++ unmatchedThings
   }
 }
