@@ -1,15 +1,14 @@
 package cl.monsoon.epub_image_viewer
 
-import java.net.URI
-
 import cats.data._
 import cats.implicits._
 import cl.monsoon.epub_image_viewer.EpubReaderJs._
-import cl.monsoon.epub_image_viewer.facade.DOMException
 import org.scalajs.dom.ext._
 import org.scalajs.dom.{DOMParser, Document, Element, File}
 import zio.interop.catz._
 import zio.{IO, ZIO}
+
+import java.net.URI
 
 object EpubReaderJs {
   type FileSupplier = FilePath => Option[File]
@@ -35,16 +34,13 @@ final class EpubReaderJs extends EpubReader[FileReader] {
     getFileContent(containerXmlFilePath).flatMap { text =>
       parseXml(text)
         .getElementsByTagName("rootfile")
-        .toSeq
-        .find(
-          e => e.getAttribute("media-type") == "application/oebps-package+xml"
-        )
+        .find(e => e.getAttribute("media-type") == "application/oebps-package+xml")
         .flatMap(e => Option(e.getAttribute("full-path")))
         .filter(_.nonEmpty)
         .fold[IO[Errors, FilePath]](
           IO.fail(NonEmptyChain("Can't find OPF file path."))
         )(
-          IO.succeed
+          IO.succeed(_)
         )
     }
 
@@ -59,33 +55,29 @@ final class EpubReaderJs extends EpubReader[FileReader] {
       val document = parseXml(text)
       val itemMap = document
         .getElementsByTagName("item")
-        .toSeq
         .map(e => (e.getAttribute("id"), Option(e.getAttribute("href")).map(fileParent + _)))
         .toMap
 
       val spineDocuments = document
         .getElementsByTagName("itemref")
-        // https://github.com/typelevel/cats/issues/1222
-        .toVector
         .map(_.getAttribute("idref"))
         // remove this file because this file doesn't in the DeDRMed Kobo books
         .filterNot(_ == "kobo-locked.html")
-        .traverse(
-          idref => itemMap(idref).toValidNec(s"Can't find $idref hrefs in spine.")
-        )
+        .toSeq
+        .traverse(idref => itemMap(idref).toValidNec(s"Can't find $idref hrefs in spine."))
 
-      spineDocuments.fold(IO.fail, IO.succeed)
+      spineDocuments.fold(IO.fail(_), IO.succeed(_))
     }
   }
 
   private def getImageElements(documentPaths: Seq[FilePath]): FileReader[Seq[ImageFilePath]] =
-    documentPaths.toVector
+    documentPaths
       .traverse(getFileTextWithPath)
       .flatMap { texts =>
         texts.flatMap { textWithDocumentPath =>
           parseXml(textWithDocumentPath._1)
-          // the reason why we don't use image[xlink:href] or img[src] here
-          // is to fast fail code if these elements don't have this attribute
+            // the reason why we don't use image[xlink:href] or img[src] here
+            // is to fast fail code if these elements don't have this attribute
             .querySelectorAll("image, img")
             .toList
             .map { node =>
@@ -102,15 +94,13 @@ final class EpubReaderJs extends EpubReader[FileReader] {
                 )
             }
         }.sequence
-          .fold(IO.fail, IO.succeed)
+          .fold(IO.fail(_), IO.succeed(_))
       }
 
   private def getImageFileDataUrl(
       imageFilePaths: Seq[ImageFilePath]
-    ): FileReader[Seq[ImageFileDataUrl]] =
-    imageFilePaths.toVector
-      .traverse(getFileContent(_, Right("readAsDataUrl")))
-      .map(_.toSeq)
+  ): FileReader[Seq[ImageFileDataUrl]] =
+    imageFilePaths.traverse(getFileContent(_, Right("readAsDataUrl")))
 
   private def getFile(filePath: FilePath): FileReader[File] =
     ZIO
@@ -121,7 +111,7 @@ final class EpubReaderJs extends EpubReader[FileReader] {
       filePath: FilePath,
       // looks | doesn't work well with literal-based singleton types
       `type`: Either["readAsText", "readAsDataUrl"] = Left("readAsText")
-    ): FileReader[String] =
+  ): FileReader[String] =
     getFile(filePath).flatMap { file =>
       val fileReader = new org.scalajs.dom.FileReader()
       val content = IO.effectAsync[Errors, String] { callback =>
@@ -131,10 +121,7 @@ final class EpubReaderJs extends EpubReader[FileReader] {
           } else {
             callback(
               IO.fail(
-                NonEmptyChain(
-                  s"Can't get $filePath content: " +
-                    s"${fileReader.error.asInstanceOf[DOMException].message}."
-                )
+                NonEmptyChain(s"Can't get $filePath content: ${fileReader.error.message}.")
               )
             )
           }

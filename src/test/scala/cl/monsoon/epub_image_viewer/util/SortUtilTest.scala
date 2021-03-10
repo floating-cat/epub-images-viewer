@@ -1,9 +1,10 @@
 package cl.monsoon.epub_image_viewer.util
 
 import cats.implicits._
-import verify.BasicTestSuite
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-object SortUtilTest extends BasicTestSuite {
+class SortUtilTest extends AnyFunSuite with Matchers {
   test(
     "the book names follow the convention declared in the sort method " +
       "can be sorted by it's book volume number"
@@ -21,7 +22,7 @@ object SortUtilTest extends BasicTestSuite {
       "Absalom, Absalom! 10"
     )
 
-    assert(SortUtil.sortForASeriesThings(bookNames) == sortedBookNames)
+    SortUtil.sortForASeriesThings(bookNames) should contain theSameElementsAs sortedBookNames
   }
 
   test(
@@ -41,7 +42,7 @@ object SortUtilTest extends BasicTestSuite {
       "4 Absalom, Absalom!"
     )
 
-    assert(SortUtil.sortForASeriesThings(bookNames) == sortedBookNames)
+    SortUtil.sortForASeriesThings(bookNames) should contain theSameElementsAs sortedBookNames
   }
 
   test(
@@ -71,6 +72,6 @@ object SortUtilTest extends BasicTestSuite {
       "4 Absalom, Absalom!"
     )
 
-    assert(SortUtil.sortForASeriesThings(bookNames) == sortedBookNames)
+    SortUtil.sortForASeriesThings(bookNames) should contain theSameElementsAs sortedBookNames
   }
 }

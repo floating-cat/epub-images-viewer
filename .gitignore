@@ -1,7 +1,5 @@
-#### KDE directory ###
-.directory
-
-### SBT ###
+# Created by .ignore support plugin (hsz.mobi)
+### SBT template
 # Simple Build Tool
 # http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
 
@@ -15,23 +13,8 @@ project/plugins/project/
 .cache
 .lib/
 
-# End of https://www.gitignore.io/api/sbt
-
-### Bloop ###
-.bloop/
-
-# End of https://www.gitignore.io/api/bloop
-
-### Metals ###
-.metals/
-
-# End of https://www.gitignore.io/api/metals
-
-# Created by https://www.gitignore.io/api/intellij
-# Edit at https://www.gitignore.io/?templates=intellij
-
-### Intellij ###
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
+### JetBrains template
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff
@@ -61,11 +44,14 @@ project/plugins/project/
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
-.idea/modules.xml
-.idea/*.iml
-.idea/modules
-*.iml
-*.ipr
+# .idea/artifacts
+# .idea/compiler.xml
+# .idea/jarRepositories.xml
+# .idea/modules.xml
+# .idea/*.iml
+# .idea/modules
+# *.iml
+# *.ipr
 
 # CMake
 cmake-build-*/
@@ -100,18 +86,6 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-### Intellij Patch ###
-# Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
-
-# *.iml
-# modules.xml
-# .idea/misc.xml
-# *.ipr
-
-# Sonarlint plugin
-.idea/sonarlint
-
-# End of https://www.gitignore.io/api/intellij
-
-## Artifact
-.idea/scala_compiler.xml
+### Scala template
+*.class
+*.log

@@ -5,18 +5,18 @@ import cats.data.NonEmptyChain
 import cats.implicits._
 import cl.monsoon.epub_image_viewer.EpubReaderJs.{Errors, ImageFileDataUrl}
 import cl.monsoon.epub_image_viewer.facade.Archive
-import cl.monsoon.epub_image_viewer.util.CustomAttributeUtil.{ariaLabel, webkitdirectory, role}
+import cl.monsoon.epub_image_viewer.util.CustomAttributeUtil.{ariaLabel, role, webkitdirectory}
 import cl.monsoon.epub_image_viewer.util.DomImplicit._
 import cl.monsoon.epub_image_viewer.util.SortUtil
-import org.scalajs.dom.console.log
 import org.scalajs.dom.File
+import org.scalajs.dom.console.log
 import slinky.core._
 import slinky.core.annotations.react
 import slinky.core.facade.Hooks._
 import slinky.core.facade.{ReactElement, SetStateHookCallback}
 import slinky.web.html._
+import zio._
 import zio.interop.catz._
-import zio.{DefaultRuntime, IO, UIO, ZIO}
 
 import scala.util.chaining._
 
@@ -81,11 +81,10 @@ import scala.util.chaining._
       ),
       div(className := "w-100"),
       div(className := "col-lg-7")(
-        error.fold(null.asInstanceOf[ReactElement])(
-          errorString =>
-            div(className := "alert alert-danger backslash-n-is-new-line", role := "alert")(
-              errorString
-            )
+        error.fold(null.asInstanceOf[ReactElement])(errorString =>
+          div(className := "alert alert-danger backslash-n-is-new-line", role := "alert")(
+            errorString
+          )
         )
       ),
       div(className := "w-100"),
@@ -105,7 +104,7 @@ import scala.util.chaining._
       files: Seq[File],
       imageFilesUpdateState: SetStateHookCallback[Seq[File]],
       filter: Boolean
-    ): Unit = {
+  ): Unit = {
     val sortedNewAddedEpubFiles = files
       .pipe(files => if (filter) files.filter(_.name.endsWith(".epub")) else files)
       .pipe(files => SortUtil.sortForASeriesThings(files)(Show.show(_.name)))
@@ -116,31 +115,26 @@ import scala.util.chaining._
       epubFiles: Seq[File],
       imageFileDataUrlsCallback: Props,
       errorsUpdateState: String => Unit
-    ): Unit = {
-    val a = epubFiles.toVector
+  ): Unit =
+    epubFiles
       .map(getEpubFileImageDataUrls)
-
-    a.sequence
-      .flatMap(
-        imageDataUrls =>
-          UIO.effectTotal {
-            imageFileDataUrlsCallback(imageDataUrls.flatten)
-          }
+      .sequence
+      .flatMap(imageDataUrls =>
+        UIO.effectTotal {
+          imageFileDataUrlsCallback(imageDataUrls.flatten)
+        }
       )
-      .flatMapError(o => {
+      .flatMapError { o =>
         errorsUpdateState(o.mkString_("", "\n", ""))
         ZIO.none
-      })
-      .pipe(new DefaultRuntime {}.unsafeRunAsync_(_))
-  }
+      }
+      .pipe(Runtime.default.unsafeRunAsync_(_))
 
   def getEpubFileImageDataUrls(epubFile: File): IO[Errors, Seq[ImageFileDataUrl]] =
     ZIO
       .effectTotal(log(epubFile))
       .flatMap(_ => ZIO.fromFuture(ec => Archive.extractZip(epubFile)(ec)))
-      .mapError[Errors](
-        e => NonEmptyChain(s"Can't load ${epubFile.name}: " + e.getMessage)
-      )
+      .mapError[Errors](e => NonEmptyChain(s"Can't load ${epubFile.name}: " + e.getMessage))
       .flatMap(new EpubReaderJs().getImageDataUrl.provide)
       .mapError(errors => errors.prepend(s"File ${epubFile.name}:"))
 }

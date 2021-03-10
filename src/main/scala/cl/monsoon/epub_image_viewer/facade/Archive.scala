@@ -22,10 +22,14 @@ trait Options extends js.Object {
 }
 
 object Archive {
+
   def extractZip(file: File)(implicit executor: ExecutionContext): Future[String => Option[File]] =
-    new Archive(file, new Options {
-      override val workerUrl: String = "worker-bundle.js"
-    }).open()
+    new Archive(
+      file,
+      new Options {
+        override val workerUrl: String = "worker-bundle.js"
+      }
+    ).open()
       .toFuture
       .flatMap(_.extractFiles().toFuture)
       .map(getFileSupplier)

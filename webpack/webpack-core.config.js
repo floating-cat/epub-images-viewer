@@ -1,6 +1,6 @@
-var path = require("path");
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: "development",
@@ -10,13 +10,13 @@ module.exports = {
       "js": path.resolve(__dirname, "../../../../src/main/js"),
       "scalajs": path.resolve(__dirname, "./scalajs-entry.js")
     },
-    modules: [ path.resolve(__dirname, 'node_modules') ]
+    modules: [path.resolve(__dirname, 'node_modules')]
   },
   module: {
     rules: [
       {
         test: /\.css$/,
-        use: [ 'style-loader', 'css-loader' ]
+        use: ['style-loader', 'css-loader']
       },
       // "file" loader for svg
       {
@@ -35,12 +35,12 @@ module.exports = {
   plugins: [
     // Web Worker need a js file to do work
     // so we export this js file separately
-    new CopyWebpackPlugin([
-      { from: "libarchive.js/dist", context: 'node_modules' }
-    ]),
-    new CopyWebpackPlugin([
-      { from: path.resolve(__dirname, "../../../../public") }
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {from: "libarchive.js/dist", context: 'node_modules'},
+        {from: path.resolve(__dirname, "../../../../public")}
+      ]
+    }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "../../../../public/index.html")
     })
@@ -48,8 +48,8 @@ module.exports = {
   output: {
     devtoolModuleFilenameTemplate: (f) => {
       if (f.resourcePath.startsWith("http://") ||
-          f.resourcePath.startsWith("https://") ||
-          f.resourcePath.startsWith("file://")) {
+        f.resourcePath.startsWith("https://") ||
+        f.resourcePath.startsWith("file://")) {
         return f.resourcePath;
       } else {
         return "webpack://" + f.namespace + "/" + f.resourcePath;
