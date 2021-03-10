@@ -28,67 +28,70 @@ import scala.util.chaining._
     val (error, errorsUpdateState) = useState(none[String])
 
     bootstrapRowWrapper(
-      div(
-        className := "col-auto mb-sm-3 btn-toolbar",
-        role := "toolbar",
-        ariaLabel := "Toolbar with button groups"
-      )(
-        div(className := "btn-group", ariaLabel := "Files or directory selection buttons group")(
-          input(
-            `type` := "file",
-            id := "files",
-            className := "hidden",
-            // We can add other archive formats here but we only accept .epub here
-            // in order to align the directory files search behavior (because we would
-            // only search .epub files when users select the directories).
-            // But users can still choose ALL Files in the input dialog.
-            accept := ".epub",
-            multiple,
-            onChange := { e =>
-              addEpubFiles(e.target.files.toSeq, imageFilesUpdateState, filter = false)
-            }
+      // https://github.com/shadaj/slinky/issues/282#issuecomment-511059616
+      List[ReactElement](
+        div(
+          className := "col-auto mb-sm-3 btn-toolbar",
+          role := "toolbar",
+          ariaLabel := "Toolbar with button groups"
+        )(
+          div(className := "btn-group", ariaLabel := "Files or directory selection buttons group")(
+            input(
+              `type` := "file",
+              id := "files",
+              className := "hidden",
+              // We can add other archive formats here but we only accept .epub here
+              // in order to align the directory files search behavior (because we would
+              // only search .epub files when users select the directories).
+              // But users can still choose ALL Files in the input dialog.
+              accept := ".epub",
+              multiple,
+              onChange := { e =>
+                addEpubFiles(e.target.files.toSeq, imageFilesUpdateState, filter = false)
+              }
+            ),
+            label(htmlFor := "files", className := "btn btn-secondary")("Select EPUB files"),
+            input(
+              `type` := "file",
+              id := "directories",
+              className := "hidden",
+              webkitdirectory := "true",
+              multiple,
+              onChange := { e =>
+                addEpubFiles(e.target.files.toSeq, imageFilesUpdateState, filter = true)
+              }
+            ),
+            // current multiple doesn't work with webkitdirectory
+            // so we use directory prompt here
+            label(htmlFor := "directories", className := "btn btn-secondary")(
+              "Select a EPUB directory"
+            )
           ),
-          label(htmlFor := "files", className := "btn btn-secondary")("Select EPUB files"),
-          input(
-            `type` := "file",
-            id := "directories",
-            className := "hidden",
-            webkitdirectory := "true",
-            multiple,
-            onChange := { e =>
-              addEpubFiles(e.target.files.toSeq, imageFilesUpdateState, filter = true)
+          div(
+            className := "input-group ml-sm-2",
+            ariaLabel := "Start to view button group",
+            onClick := { _ =>
+              viewEpubFiles(
+                imageFiles,
+                props,
+                (errorsUpdateState(_: Option[String])).compose(Some(_))
+              )
             }
-          ),
-          // current multiple doesn't work with webkitdirectory
-          // so we use directory prompt here
-          label(htmlFor := "directories", className := "btn btn-secondary")(
-            "Select a EPUB directory"
+          )(
+            label(className := "btn btn-success")("Start to view")
           )
         ),
-        div(
-          className := "input-group ml-sm-2",
-          ariaLabel := "Start to view button group",
-          onClick := { _ =>
-            viewEpubFiles(
-              imageFiles,
-              props,
-              (errorsUpdateState(_: Option[String])).compose(Some(_))
+        div(className := "w-100"),
+        div(className := "col-lg-7")(
+          error.fold(null.asInstanceOf[ReactElement])(errorString =>
+            div(className := "alert alert-danger backslash-n-is-new-line", role := "alert")(
+              errorString
             )
-          }
-        )(
-          label(className := "btn btn-success")("Start to view")
-        )
-      ),
-      div(className := "w-100"),
-      div(className := "col-lg-7")(
-        error.fold(null.asInstanceOf[ReactElement])(errorString =>
-          div(className := "alert alert-danger backslash-n-is-new-line", role := "alert")(
-            errorString
           )
-        )
-      ),
-      div(className := "w-100"),
-      div(className := "col-lg-7")(FileNamesListView(imageFiles))
+        ),
+        div(className := "w-100"),
+        div(className := "col-lg-7")(FileNamesListView(imageFiles))
+      )
     )
 
   }
